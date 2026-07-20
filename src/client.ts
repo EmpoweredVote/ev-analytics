@@ -4,6 +4,7 @@ import posthog, {
 } from 'posthog-js';
 import {
   type AnalyticsConfig,
+  type AppName,
   type Environment,
   inferEnvironment,
 } from './config';
@@ -15,6 +16,16 @@ import { type EventName, type TrackArgs } from './events';
  * local dev is kept out of production data.
  */
 let enabled = false;
+
+/**
+ * The `app` + `environment` super-properties, remembered from {@link init} so
+ * they can be re-stamped after {@link reset}. `posthog.reset()` calls
+ * `persistence.clear()`, which wipes ALL registered super-properties — without
+ * restoring these, every event captured after sign-out (notably the next
+ * `$identify` on re-login) would land with `app`/`environment` unset. Null until
+ * init runs (or in no-op mode).
+ */
+let superProperties: { app: AppName; environment: Environment } | null = null;
 
 /**
  * Exception signatures that are noise, not actionable bugs — never worth an
@@ -121,7 +132,9 @@ export function init(config: AnalyticsConfig): void {
   });
 
   // Stamp every event with app + environment for per-app / per-env slicing.
-  posthog.register({ app, environment });
+  // Remembered so reset() can re-stamp them (posthog.reset() clears them).
+  superProperties = { app, environment };
+  posthog.register(superProperties);
 
   enabled = true;
 }
@@ -155,6 +168,11 @@ export function identify(
 export function reset(): void {
   if (!enabled) return;
   posthog.reset();
+  // posthog.reset() runs persistence.clear(), which drops every registered
+  // super-property — including app + environment. Re-stamp them so events
+  // captured after this reset (e.g. the $identify fired when the next user
+  // signs in) still carry app/environment instead of landing null.
+  if (superProperties) posthog.register(superProperties);
 }
 
 /** Manually capture a pageview (EV apps are SPAs; call on route change). */
