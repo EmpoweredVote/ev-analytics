@@ -69,7 +69,10 @@ jobs:
           fi
 
       - name: Install dependencies
-        run: npm ci
+        # Use `npm install` rather than `npm ci`: the lockfile is generated on
+        # macOS, which omits some other-OS optional binary nodes (e.g.
+        # @esbuild/sunos-x64) that `npm ci` strictly requires on Linux runners.
+        run: npm install
 
       - name: Typecheck
         run: npm run typecheck
