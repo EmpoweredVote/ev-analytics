@@ -10,8 +10,14 @@ export interface LandingEvents {
   landing_tool_clicked: { tool: string };
   /** The hero call-to-action button was clicked. */
   landing_hero_cta_clicked: void;
-  /** An outbound link to one of the EV apps was clicked. */
-  landing_app_link_clicked: { app: string; href: string };
+  /**
+   * An outbound link to one of the EV apps was clicked.
+   * `target_app` is the destination EV app
+   * (readrank | compass | essentials | treasurytracker | ctc).
+   * Note: the property is `target_app`, not `app` — `app` is reserved as the
+   * PostHog super-property and would mis-attribute clicks if reused here.
+   */
+  landing_app_link_clicked: { target_app: string; href: string };
   /** The "talk to us" / contact affordance was clicked. */
   landing_talk_clicked: { location?: string };
   /** A link to financials.empowered.vote was clicked. */
