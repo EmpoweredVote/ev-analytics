@@ -5,3 +5,8 @@ dist
 *.log
 *.tgz
 .claude/
+
+# Environment / secrets — never commit
+.env
+.env.local
+.env.*.local
