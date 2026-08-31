@@ -8,6 +8,12 @@ import type { TreasuryEvents } from './treasury';
 export type { LandingEvents } from './landing';
 export type { EssentialsEvents } from './essentials';
 export type { CompassEvents } from './compass';
+export type {
+  CalibrationSurface,
+  CalibrationStep,
+  CalibrationEntryReason,
+  CalibrationExitVia,
+} from './compass';
 export type { ReadRankEvents } from './readrank';
 export type { CtcEvents } from './ctc';
 export type { TreasuryEvents } from './treasury';
