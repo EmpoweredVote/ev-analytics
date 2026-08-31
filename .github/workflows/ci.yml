@@ -1,0 +1,38 @@
+# Typecheck + build on every PR and every push to main.
+#
+# Why this exists: until now `npm run typecheck` ran ONLY inside publish.yml,
+# which triggers on tag push. So a change that broke the types could merge to
+# main and stay broken until someone next cut a release — and the failure would
+# surface as a failed publish, which is the worst place to find out.
+#
+# It also gives src/events/compass.typetest.ts somewhere to do its job. That file
+# typechecks the catalog against the payloads CompassV2 actually sends, and it
+# was added (#3) after the compass calibration props flowed to production for a
+# while undeclared: track() does not validate at runtime, so nothing fails when
+# the catalog drifts from its call sites. tsc is the only thing that notices.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          # Matches publish.yml, so what CI validates is what the release runs.
+          node-version: '24'
+          cache: 'npm'
+      - name: Install dependencies
+        # `npm install`, not `npm ci`, for the reason publish.yml documents: the
+        # lockfile is generated on macOS and omits some other-OS optional binary
+        # nodes (e.g. @esbuild/sunos-x64) that `npm ci` strictly requires on
+        # Linux runners.
+        run: npm install
+      - run: npm run typecheck
+      - run: npm run build
