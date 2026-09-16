@@ -112,6 +112,7 @@ export function init(config: AnalyticsConfig): void {
 
   const environment: Environment = config.environment ?? inferEnvironment();
   const host = config.host ?? 'https://us.i.posthog.com';
+  const cookieless = config.cookieless ?? true;
 
   posthog.init(key, {
     api_host: host,
@@ -122,9 +123,19 @@ export function init(config: AnalyticsConfig): void {
     capture_dead_clicks: config.captureDeadClicks ?? false,
     // Error tracking on by default — the SDK is already loaded; this is free.
     capture_exceptions: config.captureExceptions ?? true,
-    // Share the anonymous distinct_id across every *.empowered.vote subdomain so
-    // anonymous cross-app journeys stitch automatically.
-    cross_subdomain_cookie: true,
+    // Cookieless analytics (decision 0021), on by default. 'always' means
+    // cookieless from startup with no consent banner — nothing is stored on the
+    // device for anonymous visitors, and identity is a server-side hash. (The
+    // other value, 'on_reject', only goes cookieless AFTER a banner rejection,
+    // which we do not have, so it is wrong here.) We therefore also DROP
+    // cross_subdomain_cookie, which would force a cookie and defeat the goal;
+    // login does not depend on it (it uses the ev_session cookie). If an app
+    // opts out of cookieless (config.cookieless === false), restore the
+    // anonymous cross-subdomain cookie so cross-app journeys still stitch.
+    // Requires cookieless enabled in the PostHog project settings too, or events
+    // are dropped server-side.
+    cookieless_mode: cookieless ? 'always' : undefined,
+    cross_subdomain_cookie: cookieless ? undefined : true,
     // rrweb is expensive; opt in per-app (see AnalyticsConfig.sessionRecording).
     disable_session_recording: !(config.sessionRecording ?? false),
     before_send: makeBeforeSend(config.beforeSend),
