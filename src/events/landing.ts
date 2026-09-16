@@ -28,4 +28,18 @@ export interface LandingEvents {
   landing_scroll_depth: { depth: number };
   /** Light/dark theme toggled. */
   landing_theme_toggled: { to: string };
+  /**
+   * The /donate page was viewed (donation-funnel step). `source` is the `?src=`
+   * marker on the inbound link — e.g. 'financials' from the Treasury Tracker
+   * Donate button — or 'direct' when the page is opened with no marker.
+   */
+  landing_donate_viewed: { source: string };
+  /**
+   * The visitor engaged the embedded GiveButter widget on /donate — the furthest
+   * client-side signal available before GiveButter's cross-domain iframe takes
+   * over. This is NOT a completed donation: the card flow happens inside
+   * GiveButter and completion is recorded server-side by the givebutter-webhook,
+   * not by PostHog. `source` carries the same inbound marker as the pageview.
+   */
+  landing_donate_widget_engaged: { source: string };
 }

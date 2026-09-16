@@ -44,6 +44,25 @@ export interface AnalyticsConfig {
   personProfiles?: 'always' | 'identified_only';
 
   /**
+   * Cookieless analytics (ev-cto decision 0021). Defaults to **true**.
+   *
+   * When on, PostHog stores **nothing** on the visitor's device for anonymous
+   * browsing — no cookie and no localStorage — so no consent banner is needed.
+   * Identity is resolved by a privacy-preserving hash computed server-side
+   * (posthog-js `cookieless_mode: 'always'`). Cross-subdomain cookie stitching
+   * is dropped, because a forced cross-subdomain cookie contradicts the goal.
+   *
+   * Set to `false` only if an app later adds a proper consent banner and wants
+   * full cookie-based analytics after opt-in; that path restores the anonymous
+   * cross-subdomain cookie.
+   *
+   * NOTE: cookieless must ALSO be enabled in the PostHog *project* settings, or
+   * cookieless events are dropped server-side. Enable the project setting before
+   * shipping this.
+   */
+  cookieless?: boolean;
+
+  /**
    * Auto-capture pageviews. Defaults to false — EV apps are SPAs and capture
    * pageviews manually on route changes via `pageview()`.
    */
